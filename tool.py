@@ -29,10 +29,21 @@ class PencilTool(Tool):
         for trace in traces:
             if trace["tool"] != self.name:
                 continue
-            # draw_line_strip requiere al menos 2 puntos
-            if len(trace["trace"]) < 2:
+
+            valid_points = []
+
+            for x, y in trace["trace"]:
+
+                if y <= HEIGHT - (TOP_BAR_HEIGHT + 3):
+                    valid_points.append((x, y))
+
+            if len(valid_points) < 2:
                 continue
-            arcade.draw_line_strip(trace["trace"], trace["color"])
+
+            arcade.draw_line_strip(
+                valid_points,
+                trace["color"]
+            )
 
 
 class MarkerTool(Tool):
@@ -63,14 +74,15 @@ class MarkerTool(Tool):
                 x1, y1 = points[i]
                 x2, y2 = points[i + 1]
 
-                arcade.draw_line(
-                    x1,
-                    y1,
-                    x2,
-                    y2,
-                    trace["color"],
-                    trace["thickness"]
-                )
+                if (y1 <= HEIGHT - (TOP_BAR_HEIGHT + 3)) and (y2 <= HEIGHT - (TOP_BAR_HEIGHT + 3)):
+                    arcade.draw_line(
+                        x1,
+                        y1,
+                        x2,
+                        y2,
+                        trace["color"],
+                        trace["thickness"]
+                    )
 
 
 class SprayTool(Tool):
@@ -98,7 +110,7 @@ class SprayTool(Tool):
             spray_points.append((
                 x + offset_x,
                 (y + offset_y) if (y + offset_y) <= (HEIGHT - (TOP_BAR_HEIGHT + 3))
-                else (HEIGHT - (TOP_BAR_HEIGHT + 3))
+                else (HEIGHT - (TOP_BAR_HEIGHT + 4))
             ))
 
         trace["trace"].extend(spray_points)

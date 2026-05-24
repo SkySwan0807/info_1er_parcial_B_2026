@@ -11,14 +11,6 @@ from values import HEIGHT
 from values import TOP_BAR_HEIGHT
 from values import icon_names
 
-COLORS = {
-    "black": arcade.color.BLACK,
-    "red": arcade.color.RED,
-    "blue": arcade.color.BLUE,
-    "yellow": arcade.color.YELLOW,
-    "green": arcade.color.GREEN,
-}
-
 
 class Paint(arcade.View):
     def __init__(self, load_path: str | None = None):
@@ -88,27 +80,27 @@ class Paint(arcade.View):
         self.used_tools[self.tool.name] = self.tool
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
-        if y > HEIGHT - (TOP_BAR_HEIGHT + 3):
-            return
-        if button == arcade.MOUSE_BUTTON_LEFT:
-            self.traces.append({
-                "tool": self.tool.name,
-                "color": self.color,
-                "trace": [(x, y)],
-                "thickness": self.thickness,
-                "pixels": self.pixels
-            })
+        
+            if button == arcade.MOUSE_BUTTON_LEFT:
+                self.traces.append({
+                    "tool": self.tool.name,
+                    "color": self.color,
+                    "trace": [(x, y)],
+                    "thickness": self.thickness,
+                    "pixels": self.pixels
+                })
 
     def on_mouse_drag(self, x: int, y: int, dx: int, dy: int, buttons: int, modifiers: int):
         if y > HEIGHT - (TOP_BAR_HEIGHT + 3):
             return
-        if self.traces:
-            if self.tool.name == "SPRAY":
-                self.tool.spray_points(self.traces[-1], x, y)
-            elif self.tool.name == "ERASER":
-                self.tool.erase_traces(self.traces, x, y)
-            else:
-                self.traces[-1]["trace"].append((x, y))
+        else:
+            if self.traces:
+                if self.tool.name == "SPRAY":
+                    self.tool.spray_points(self.traces[-1], x, y)
+                elif self.tool.name == "ERASER":
+                    self.tool.erase_traces(self.traces, x, y)
+                else:
+                    self.traces[-1]["trace"].append((x, y))
 
     def on_draw(self):
         self.clear()
