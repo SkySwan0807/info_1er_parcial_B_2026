@@ -4,6 +4,7 @@ from tool import PencilTool
 from tool import MarkerTool
 from tool import SprayTool
 from tool import EraserTool
+import json
 
 WIDTH = 800
 HEIGHT = 600
@@ -25,16 +26,21 @@ class Paint(arcade.View):
         self.tool = PencilTool()
         self.used_tools = {self.tool.name: self.tool}
         self.color = arcade.color.BLUE
-        self.thickness = 0
-        self.pixels = 0
+        self.thickness = 1
+        self.pixels = 1
 
         if load_path is not None:
-            ### ---------------------- ###
-            ### IMPLEMENTAR CARGA AQUI ###
-            ### ---------------------- ###
-            # Debe leer `load_path` y poblar self.traces con la lista de
-            # trazos guardada. Decida el formato (JSON recomendado).
-            self.traces = []
+
+            with open(load_path, "r") as file:
+                self.traces = json.load(file)
+
+            for trace in self.traces:
+                if trace["tool"] == "MARKER":
+                    self.used_tools["MARKER"] = MarkerTool()
+                elif trace["tool"] == "SPRAY":
+                    self.used_tools["SPRAY"] = SprayTool()
+                elif trace["tool"] == "PENCIL":
+                    self.used_tools["PENCIL"] = PencilTool()
         else:
             self.traces = []
 
@@ -67,12 +73,22 @@ class Paint(arcade.View):
         elif symbol == arcade.key.W:
             self.color = arcade.color.BLACK
         elif symbol == arcade.key.O:
-            ### ---------------------- ###
-            ### IMPLEMENTAR GUARDADO AQUI ###
-            ### ---------------------- ###
-            # Debe serializar self.traces a un archivo de texto (JSON
-            # recomendado) para que pueda recargarse luego.
-            pass
+            number = 1
+
+            while True:
+                filename = f"paint{number}.json"
+
+                try:
+                    with open(filename, "r"):
+                        number += 1
+
+                except FileNotFoundError:
+                    break
+
+            with open(filename, "w") as file:
+                json.dump(self.traces, file)
+
+            print(f"Guardado en {filename}")
 
         self.used_tools[self.tool.name] = self.tool
 

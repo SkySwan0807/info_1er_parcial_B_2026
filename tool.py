@@ -2,7 +2,7 @@ import arcade
 from typing import Protocol
 import random
 import math
-
+import copy
 
 class Tool(Protocol):
     """
@@ -167,7 +167,7 @@ class EraserTool(Tool):
                 trace["trace"] = new_points
 
                 if len(new_points_2) >= 2:
-                    new_trace = trace.copy()
+                    new_trace = copy.deepcopy(trace)
                     new_trace["trace"] = new_points_2
                     traces.append(new_trace)
                 
