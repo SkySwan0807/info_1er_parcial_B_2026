@@ -3,6 +3,8 @@ from typing import Protocol
 import random
 import math
 import copy
+from values import HEIGHT
+from values import TOP_BAR_HEIGHT
 
 class Tool(Protocol):
     """
@@ -93,7 +95,11 @@ class SprayTool(Tool):
             offset_x = random.uniform(-trace["thickness"], trace["thickness"])
             offset_y = random.uniform(-trace["thickness"], trace["thickness"])
 
-            spray_points.append((x + offset_x, y + offset_y))
+            spray_points.append((
+                x + offset_x,
+                (y + offset_y) if (y + offset_y) <= (HEIGHT - (TOP_BAR_HEIGHT + 3))
+                else (HEIGHT - (TOP_BAR_HEIGHT + 3))
+            ))
 
         trace["trace"].extend(spray_points)
 

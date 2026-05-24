@@ -1,14 +1,15 @@
 import sys
 import arcade
+import json
 from tool import PencilTool
 from tool import MarkerTool
 from tool import SprayTool
 from tool import EraserTool
-import json
-
-WIDTH = 800
-HEIGHT = 600
-TITLE = "Paint"
+from values import TITLE
+from values import WIDTH
+from values import HEIGHT
+from values import TOP_BAR_HEIGHT
+from values import icon_names
 
 COLORS = {
     "black": arcade.color.BLACK,
@@ -47,20 +48,16 @@ class Paint(arcade.View):
     def on_key_press(self, symbol: int, modifiers: int):
         # Seleccion de herramientas con las teclas numericas
         if symbol == arcade.key.KEY_1:
-            self.tool = PencilTool()
+            self.selectPencil()
         elif symbol == arcade.key.KEY_2:
             ### KEY_2 -> MarkerTool (su implementacion) ###
-            self.tool = MarkerTool()
-            self.thickness = 8
+            self.selectMarker()
         elif symbol == arcade.key.KEY_3:
             ### KEY_3 -> SprayTool (su implementacion) ###
-            self.tool = SprayTool()
-            self.thickness = 10
-            self.pixels = 12
+            self.selectSpray()
         elif symbol == arcade.key.KEY_4:
             ### KEY_4 -> EraserTool (su implementacion) ###
-            self.thickness = 10
-            self.tool = EraserTool(self.thickness)
+            self.selectEraser()
         # Seleccion de color con teclas asd
         elif symbol == arcade.key.A:
             self.color = arcade.color.RED
@@ -73,26 +70,13 @@ class Paint(arcade.View):
         elif symbol == arcade.key.W:
             self.color = arcade.color.BLACK
         elif symbol == arcade.key.O:
-            number = 1
-
-            while True:
-                filename = f"paint{number}.json"
-
-                try:
-                    with open(filename, "r"):
-                        number += 1
-
-                except FileNotFoundError:
-                    break
-
-            with open(filename, "w") as file:
-                json.dump(self.traces, file)
-
-            print(f"Guardado en {filename}")
+            self.selectSave()
 
         self.used_tools[self.tool.name] = self.tool
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
+        if y > HEIGHT - (TOP_BAR_HEIGHT + 3):
+            return
         if button == arcade.MOUSE_BUTTON_LEFT:
             self.traces.append({
                 "tool": self.tool.name,
@@ -103,6 +87,8 @@ class Paint(arcade.View):
             })
 
     def on_mouse_drag(self, x: int, y: int, dx: int, dy: int, buttons: int, modifiers: int):
+        if y > HEIGHT - (TOP_BAR_HEIGHT + 3):
+            return
         if self.traces:
             if self.tool.name == "SPRAY":
                 self.tool.spray_points(self.traces[-1], x, y)
@@ -113,9 +99,63 @@ class Paint(arcade.View):
 
     def on_draw(self):
         self.clear()
+        
+        # Barra superior
+        arcade.draw_lrbt_rectangle_filled(
+            0,
+            WIDTH,
+            HEIGHT - TOP_BAR_HEIGHT,
+            HEIGHT,
+            arcade.color.WHITE
+        )
+        
+        # Linea separadora
+        arcade.draw_line(
+            0,
+            HEIGHT - TOP_BAR_HEIGHT,
+            WIDTH,
+            HEIGHT - TOP_BAR_HEIGHT,
+            arcade.color.BLACK,
+            2
+        )
+
         for tool in self.used_tools.values():
             if tool.name != "ERASER":
                 tool.draw_traces(self.traces)
+
+    def selectPencil(self):
+        self.tool = PencilTool()
+
+    def selectMarker(self):
+        self.tool = MarkerTool()
+        self.thickness = 8
+    
+    def selectSpray(self):
+        self.tool = SprayTool()
+        self.thickness = 10
+        self.pixels = 12
+
+    def selectEraser(self):
+        self.thickness = 10
+        self.tool = EraserTool(self.thickness)
+
+    def selectSave(self):
+        number = 1
+
+        while True:
+            filename = f"paint{number}.json"
+
+            try:
+                with open(filename, "r"):
+                    number += 1
+
+            except FileNotFoundError:
+                break
+
+        with open(filename, "w") as file:
+            json.dump(self.traces, file)
+
+        print(f"Guardado en {filename}")
 
 
 if __name__ == "__main__":
