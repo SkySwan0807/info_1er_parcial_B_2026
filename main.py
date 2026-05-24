@@ -1,5 +1,9 @@
+import sys
 import arcade
 from tool import PencilTool
+from tool import MarkerTool
+from tool import SprayTool
+from tool import EraserTool
 
 WIDTH = 800
 HEIGHT = 600
@@ -17,10 +21,12 @@ COLORS = {
 class Paint(arcade.View):
     def __init__(self, load_path: str | None = None):
         super().__init__()
-        self.background_color = arcade.color.WHITE
+        self.background_color = arcade.color.LIGHT_GRAY
         self.tool = PencilTool()
         self.used_tools = {self.tool.name: self.tool}
         self.color = arcade.color.BLUE
+        self.thickness = 0
+        self.pixels = 0
 
         if load_path is not None:
             ### ---------------------- ###
@@ -38,13 +44,17 @@ class Paint(arcade.View):
             self.tool = PencilTool()
         elif symbol == arcade.key.KEY_2:
             ### KEY_2 -> MarkerTool (su implementacion) ###
-            pass
+            self.tool = MarkerTool()
+            self.thickness = 8
         elif symbol == arcade.key.KEY_3:
             ### KEY_3 -> SprayTool (su implementacion) ###
-            pass
+            self.tool = SprayTool()
+            self.thickness = 10
+            self.pixels = 12
         elif symbol == arcade.key.KEY_4:
             ### KEY_4 -> EraserTool (su implementacion) ###
-            pass
+            self.thickness = 10
+            self.tool = EraserTool(self.thickness)
         # Seleccion de color con teclas asd
         elif symbol == arcade.key.A:
             self.color = arcade.color.RED
@@ -52,6 +62,10 @@ class Paint(arcade.View):
             self.color = arcade.color.GREEN
         elif symbol == arcade.key.D:
             self.color = arcade.color.BLUE
+        elif symbol == arcade.key.Q:
+            self.color = arcade.color.YELLOW
+        elif symbol == arcade.key.W:
+            self.color = arcade.color.BLACK
         elif symbol == arcade.key.O:
             ### ---------------------- ###
             ### IMPLEMENTAR GUARDADO AQUI ###
@@ -64,20 +78,31 @@ class Paint(arcade.View):
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
         if button == arcade.MOUSE_BUTTON_LEFT:
-            self.traces.append({"tool": self.tool.name, "color": self.color, "trace": [(x, y)]})
+            self.traces.append({
+                "tool": self.tool.name,
+                "color": self.color,
+                "trace": [(x, y)],
+                "thickness": self.thickness,
+                "pixels": self.pixels
+            })
 
     def on_mouse_drag(self, x: int, y: int, dx: int, dy: int, buttons: int, modifiers: int):
         if self.traces:
-            self.traces[-1]["trace"].append((x, y))
+            if self.tool.name == "SPRAY":
+                self.tool.spray_points(self.traces[-1], x, y)
+            elif self.tool.name == "ERASER":
+                self.tool.erase_traces(self.traces, x, y)
+            else:
+                self.traces[-1]["trace"].append((x, y))
 
     def on_draw(self):
         self.clear()
         for tool in self.used_tools.values():
-            tool.draw_traces(self.traces)
+            if tool.name != "ERASER":
+                tool.draw_traces(self.traces)
 
 
 if __name__ == "__main__":
-    import sys
     window = arcade.Window(WIDTH, HEIGHT, TITLE)
     # Invocacion: python main.py [ruta/a/dibujo.json]
     if len(sys.argv) > 1:

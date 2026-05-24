@@ -1,5 +1,7 @@
 import arcade
 from typing import Protocol
+import random
+import math
 
 
 class Tool(Protocol):
@@ -43,9 +45,30 @@ class MarkerTool(Tool):
     """
     name = "MARKER"
 
-    ### ---------------------- ###
-    ### SU IMPLEMENTACION AQUI ###
-    ### ---------------------- ###
+
+    def draw_traces(self, traces: list[dict]):
+
+        for trace in traces:
+            if trace["tool"] != self.name:
+                continue
+
+            points = trace["trace"]
+
+            if len(points) < 2:
+                continue
+
+            for i in range(len(points) - 1):
+                x1, y1 = points[i]
+                x2, y2 = points[i + 1]
+
+                arcade.draw_line(
+                    x1,
+                    y1,
+                    x2,
+                    y2,
+                    trace["color"],
+                    trace["thickness"]
+                )
 
 
 class SprayTool(Tool):
@@ -62,10 +85,30 @@ class SprayTool(Tool):
     """
     name = "SPRAY"
 
-    ### ---------------------- ###
-    ### SU IMPLEMENTACION AQUI ###
-    ### ---------------------- ###
+    def spray_points(self, trace, x, y):
+        spray_points = []
 
+        for _ in range(trace["pixels"]):
+
+            offset_x = random.uniform(-trace["thickness"], trace["thickness"])
+            offset_y = random.uniform(-trace["thickness"], trace["thickness"])
+
+            spray_points.append((x + offset_x, y + offset_y))
+
+        trace["trace"].extend(spray_points)
+
+    def draw_traces(self, traces):
+        for trace in traces:
+            if trace["tool"] != self.name:
+                continue
+
+            for x, y in trace["trace"]:
+                arcade.draw_point(
+                    x,
+                    y,
+                    trace["color"],
+                    1
+                )
 
 class EraserTool(Tool):
     """
@@ -88,6 +131,48 @@ class EraserTool(Tool):
     """
     name = "ERASER"
 
-    ### ---------------------- ###
-    ### SU IMPLEMENTACION AQUI ###
-    ### ---------------------- ###
+    def __init__(self, radius=10):
+
+        self.radius = radius
+
+    def erase_traces(self, traces, x, y):
+        for trace in traces:
+            if trace["tool"] == "SPRAY":
+                new_points = []
+
+                for a, b in trace["trace"]:
+                    d = math.hypot(x - a, y - b)
+
+                    if (d > self.radius):
+                        new_points.append((a, b))
+
+                trace["trace"] = new_points
+            else:
+                new_points = []
+                new_points_2 = []
+                trace_cut = False
+
+                for a, b in trace["trace"]:
+                    d = math.hypot(x - a, y - b)
+
+                    if (d > self.radius):
+                        if not trace_cut:
+                            new_points.append((a, b))
+                        else:
+                            new_points_2.append((a, b))
+                    else:
+                        trace_cut = True
+
+                trace["trace"] = new_points
+
+                if len(new_points_2) >  2:
+                    new_trace = trace
+                    new_trace["trace"] = new_points_2
+                    traces.append(new_trace)
+                
+
+
+
+    def draw_traces(self, traces):
+        pass
+
