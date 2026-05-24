@@ -29,6 +29,19 @@ class Paint(arcade.View):
         self.color = arcade.color.BLUE
         self.thickness = 1
         self.pixels = 1
+        self.icons = arcade.SpriteList()
+
+        for i, name in enumerate(icon_names):
+
+            sprite = arcade.Sprite(
+                f"icons/{name}",
+                scale=0.5
+            )
+
+            sprite.center_x = 15 + i * 25
+            sprite.center_y = HEIGHT - (TOP_BAR_HEIGHT / 2)
+
+            self.icons.append(sprite)
 
         if load_path is not None:
 
@@ -118,6 +131,8 @@ class Paint(arcade.View):
             arcade.color.BLACK,
             2
         )
+
+        self.icons.draw()
 
         for tool in self.used_tools.values():
             if tool.name != "ERASER":
