@@ -136,14 +136,15 @@ class EraserTool(Tool):
         self.radius = radius
 
     def erase_traces(self, traces, x, y):
-        for trace in traces:
+
+        for trace in traces[:]:
             if trace["tool"] == "SPRAY":
                 new_points = []
 
                 for a, b in trace["trace"]:
                     d = math.hypot(x - a, y - b)
 
-                    if (d > self.radius):
+                    if d > self.radius:
                         new_points.append((a, b))
 
                 trace["trace"] = new_points
@@ -155,7 +156,7 @@ class EraserTool(Tool):
                 for a, b in trace["trace"]:
                     d = math.hypot(x - a, y - b)
 
-                    if (d > self.radius):
+                    if d > self.radius:
                         if not trace_cut:
                             new_points.append((a, b))
                         else:
@@ -165,8 +166,8 @@ class EraserTool(Tool):
 
                 trace["trace"] = new_points
 
-                if len(new_points_2) >  2:
-                    new_trace = trace
+                if len(new_points_2) >= 2:
+                    new_trace = trace.copy()
                     new_trace["trace"] = new_points_2
                     traces.append(new_trace)
                 
