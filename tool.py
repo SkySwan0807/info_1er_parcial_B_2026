@@ -149,8 +149,10 @@ class EraserTool(Tool):
     """
     name = "ERASER"
 
-    def __init__(self, radius=10):
-
+    def __init__(self, radius=5):
+        self.radius = radius
+    
+    def set_radius(self, radius):
         self.radius = radius
 
     def erase_traces(self, traces, x, y):
